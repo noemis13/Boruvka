@@ -11,6 +11,7 @@ public class Boruvka {
     /* -- Passos
 #verificar se o peso de todas as arestas são diferentes
 #não deve ter ciclos negativos
+#Ser conexo    
 
 #verificar, para cada vertice, a menor aresta que o liga
 
@@ -21,22 +22,37 @@ public class Boruvka {
     
  SOLUÇÃO APENAS PARA GRAFOS CONEXOS   
      */
+    public ArrayList<String> arvoreGeradoraMinima = new ArrayList<>();
     public ArrayList<String> subgrafo = new ArrayList<>();
     public ArrayList<String> verticesDoGrafo = new ArrayList<>();
     public static Map<String, ArrayList<String>> grafo = new HashMap<>();
 
     public static void main(String[] args) {
+        Boruvka b = new Boruvka();
+        //verificar grafo conexo
+        b.verificaGrafoConexo();
+    }
+
+
+    public void verificaGrafoConexo() {
         Grafo g = new Grafo();
+        //Aplicar busca em largura
+        BuscaEmLargura bl = new BuscaEmLargura();
+        GrafoSemPeso gsp = new GrafoSemPeso();
 
         g.addVertice("a");
+        gsp.addVertice("a");
         g.addVertice("b");
+        gsp.addVertice("b");
         g.addVertice("c");
+        gsp.addVertice("c");
         g.addVertice("d");
+        gsp.addVertice("d");
         g.addVertice("e");
+        gsp.addVertice("e");
         g.addVertice("f");
+        gsp.addVertice("f");
 
-        //g.addArestaPeso(-4, "a", "b");
-        //g.addArestaPeso(-4, "b", "a");
         g.addArestaPeso(1, "b", "c");
         g.addArestaPeso(1, "c", "b");
         g.addArestaPeso(2, "a", "c");
@@ -54,54 +70,58 @@ public class Boruvka {
         g.addArestaPeso(6, "f", "d");
         g.addArestaPeso(6, "d", "f");
 
-        g.addGrafo();
-        g.printGrafo();
-        System.out.println("\n");
-        grafo = g.getGrafo();
+        gsp.addAresta("b", "a");
+        gsp.addAresta("b", "c");
+        gsp.addAresta("c", "b");
+        gsp.addAresta("a", "c");
+        gsp.addAresta("c", "a");
+        gsp.addAresta("b", "d");
+        gsp.addAresta("d", "b");
+        gsp.addAresta("c", "d");
+        gsp.addAresta("d", "c");
+        gsp.addAresta("d", "e");
+        gsp.addAresta("e", "d");
+        gsp.addAresta("e", "c");
+        gsp.addAresta("c", "e");
+        gsp.addAresta("e", "f");
+        gsp.addAresta("f", "e");
+        gsp.addAresta("f", "d");
+        gsp.addAresta("d", "f");
 
-        Boruvka b = new Boruvka();
+        gsp.addGrafo();
 
-        //verificar dps
-        b.verificaCiclosNegativos(grafo);
+        Map<String, ArrayList<String>> grafoSemPeso = new HashMap<>();
+        grafoSemPeso = gsp.getGrafo();
 
-        b.verticesGrafo();
+        int conexidade = bl.buscaLargura("a", "b", grafoSemPeso);
 
-        //calcular Boruvka
-        String componete = b.calculaBoruvkaPrimeiraIteracao("a");
-        String[] splitComponente = componete.split("=");
+        if (conexidade == 0) {
+            System.out.println("Grafo desconexo!");
+            System.out.println("Não existe solução para o algoritmo!");
 
-        b.calculaBoruvka(splitComponente[0], splitComponente[2]);
+        } else {
+            g.addGrafo();
+            g.printGrafo();
+            System.out.println("\n");
 
-    }
+            grafo = g.getGrafo();
 
-    public void verificaCiclosNegativos(Map<String, ArrayList<String>> grafo) {
+            verticesGrafo();
 
-        //Pegar apenas os pesos
-        for (Map.Entry< String, ArrayList<String>> g : grafo.entrySet()) {
-            ArrayList<String> pesoVertice = new ArrayList<>();
+            //calcular Boruvka
+            String componete = calculaBoruvkaPrimeiraIteracao("a");
+            String[] splitComponente = componete.split("=");
 
-            String vertice = g.getKey();
-            pesoVertice = g.getValue();
-
-            //Separar pesos
-            for (int i = 0; i < pesoVertice.size(); i++) {
-                String[] split = pesoVertice.get(i).split("=");
-                if (Integer.valueOf(split[0]) < 0) {
-                    int pesoNeg = Integer.valueOf(split[0]);
-                    String verticePeso = split[1];
-
-                }
-
-            }
-
+            calculaBoruvka(splitComponente[0], splitComponente[2]);
         }
-
     }
 
+    
     public void verticesGrafo() {
         //armazena todos os vertices do grafo
         for (Map.Entry<String, ArrayList<String>> g : grafo.entrySet()) {
             verticesDoGrafo.add(g.getKey());
+
         }
 
     }
@@ -124,7 +144,11 @@ public class Boruvka {
 
         //formar componente e encontrar o proximo menor
         String componentes = verticeInicial + "=" + menor + "=" + adjMenor;
-        subgrafo.add(componentes);
+        arvoreGeradoraMinima.add(componentes);
+
+        if (!subgrafo.contains(verticeInicial)) {
+            subgrafo.add(verticeInicial);
+        }
 
         //gerar grafo com as componentes
         for (Map.Entry<String, ArrayList<String>> g : grafo.entrySet()) {
@@ -193,10 +217,17 @@ public class Boruvka {
                 vertice = verticeComponente;
             }
         }
-
         //formar componente e encontrar o proximo menor
         String componentes = vertice + "=" + menor + "=" + adjMenor;
-        subgrafo.add(componentes);
+        arvoreGeradoraMinima.add(componentes);
+
+        //Componentes criadas
+        if (!subgrafo.contains(vertice)) {
+            subgrafo.add(vertice);
+        }
+        if (!subgrafo.contains(adjMenor)) {
+            subgrafo.add(adjMenor);
+        }
 
         //gerar grafo com as componentes
         for (Map.Entry<String, ArrayList<String>> g : grafo.entrySet()) {
@@ -220,17 +251,20 @@ public class Boruvka {
             }
 
         }
-
         //verifica se passou por todos os vertices do grafo
         boolean componentesVazias = false;
-        int pos = verticesDoGrafo.size();
-        if(verticesDoGrafo.get(pos-1).equals(adjMenor)){
-            componentesVazias = true;
+
+        if (verticesDoGrafo.contains(adjMenor)) {
+            verticesDoGrafo.remove(adjMenor);
+
         }
-        
-        if (componentesVazias == true) {
+        if (verticesDoGrafo.contains(verticeInicial)) {
+            verticesDoGrafo.remove(verticeInicial);
+        }
+
+        if (verticesDoGrafo.isEmpty()) {
             System.out.println("FIM DO ALGORITMO! ");
-            System.out.println("Árvore geradora mínima: " + subgrafo);
+            System.out.println("Árvore geradora mínima: " + arvoreGeradoraMinima);
 
         } else {
             //criar próximas componentes
@@ -243,9 +277,10 @@ public class Boruvka {
         int menor = Integer.MAX_VALUE;
         String valor = null;
         String adjMenor = null;
+
         for (int i = 0; i < adjacentes.size(); i++) {
             String[] peso = adjacentes.get(i).split("=");
-            if (Integer.valueOf(peso[0]) < menor) {
+            if (Integer.valueOf(peso[0]) < menor && !subgrafo.contains(peso[1])) {
                 menor = Integer.valueOf(peso[0]);
                 adjMenor = peso[1];
                 valor = adjacentes.get(i);
