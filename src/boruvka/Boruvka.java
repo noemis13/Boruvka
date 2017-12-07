@@ -28,30 +28,14 @@ public class Boruvka {
     public static Map<String, ArrayList<String>> grafo = new HashMap<>();
 
     public static void main(String[] args) {
-        Boruvka b = new Boruvka();
-        //verificar grafo conexo
-        b.verificaGrafoConexo();
-    }
-
-
-    public void verificaGrafoConexo() {
         Grafo g = new Grafo();
-        //Aplicar busca em largura
-        BuscaEmLargura bl = new BuscaEmLargura();
-        GrafoSemPeso gsp = new GrafoSemPeso();
 
         g.addVertice("a");
-        gsp.addVertice("a");
         g.addVertice("b");
-        gsp.addVertice("b");
         g.addVertice("c");
-        gsp.addVertice("c");
         g.addVertice("d");
-        gsp.addVertice("d");
         g.addVertice("e");
-        gsp.addVertice("e");
         g.addVertice("f");
-        gsp.addVertice("f");
 
         g.addArestaPeso(1, "b", "c");
         g.addArestaPeso(1, "c", "b");
@@ -70,53 +54,23 @@ public class Boruvka {
         g.addArestaPeso(6, "f", "d");
         g.addArestaPeso(6, "d", "f");
 
-        gsp.addAresta("b", "a");
-        gsp.addAresta("b", "c");
-        gsp.addAresta("c", "b");
-        gsp.addAresta("a", "c");
-        gsp.addAresta("c", "a");
-        gsp.addAresta("b", "d");
-        gsp.addAresta("d", "b");
-        gsp.addAresta("c", "d");
-        gsp.addAresta("d", "c");
-        gsp.addAresta("d", "e");
-        gsp.addAresta("e", "d");
-        gsp.addAresta("e", "c");
-        gsp.addAresta("c", "e");
-        gsp.addAresta("e", "f");
-        gsp.addAresta("f", "e");
-        gsp.addAresta("f", "d");
-        gsp.addAresta("d", "f");
+        g.addGrafo();
+        g.printGrafo();
+        System.out.println("\n");
+        grafo = g.getGrafo();
 
-        gsp.addGrafo();
+        Boruvka b = new Boruvka();
 
-        Map<String, ArrayList<String>> grafoSemPeso = new HashMap<>();
-        grafoSemPeso = gsp.getGrafo();
+        b.verticesGrafo();
 
-        int conexidade = bl.buscaLargura("a", "b", grafoSemPeso);
+        //calcular Boruvka
+        String componete = b.calculaBoruvkaPrimeiraIteracao("a");
+        String[] splitComponente = componete.split("=");
 
-        if (conexidade == 0) {
-            System.out.println("Grafo desconexo!");
-            System.out.println("Não existe solução para o algoritmo!");
+        b.calculaBoruvka(splitComponente[0], splitComponente[2]);
 
-        } else {
-            g.addGrafo();
-            g.printGrafo();
-            System.out.println("\n");
-
-            grafo = g.getGrafo();
-
-            verticesGrafo();
-
-            //calcular Boruvka
-            String componete = calculaBoruvkaPrimeiraIteracao("a");
-            String[] splitComponente = componete.split("=");
-
-            calculaBoruvka(splitComponente[0], splitComponente[2]);
-        }
     }
 
-    
     public void verticesGrafo() {
         //armazena todos os vertices do grafo
         for (Map.Entry<String, ArrayList<String>> g : grafo.entrySet()) {
